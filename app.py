@@ -6,7 +6,7 @@ from flask import Flask, render_template, Response, redirect, url_for
 app = Flask(__name__)
 
 # Initialize video capture and face mesh detector
-cap = None
+cap = cv2.VideoCapture(0)
 detector = FaceMeshDetector(maxFaces=1)
 
 # Real-world width and focal length
@@ -84,4 +84,5 @@ def video_feed():
         return "Camera not started. Please click Start."
 
 
-
+if __name__ == '__main__':
+    app.run(debug=True)
