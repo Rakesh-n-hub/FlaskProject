@@ -6,35 +6,122 @@
     <title>Distance Measurement App</title>
     <style>
         body {
-            text-align: center;
             font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
         }
+
         h1 {
-            margin: 20px;
+            margin-bottom: 10px;
         }
-        button {
-            margin: 10px;
+
+        .video-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #video-feed {
+            width: 800px;
+            height: 450px;
+            border: 3px solid black;
+            background-color: white;
+            display: none; /* Hide video initially */
+        }
+
+        .distance-label {
+            font-size: 20px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .button {
             padding: 10px 20px;
             font-size: 16px;
+            border: none;
             cursor: pointer;
+            border-radius: 5px;
         }
-        #video {
-            border: 2px solid black;
-            width: 640px; /* Set the width */
-            height: 360px; /* Set the height */
-            margin-top: 20px;
+
+        .start-btn {
+            background-color: green;
+            color: white;
+        }
+
+        .stop-btn {
+            background-color: red;
+            color: white;
+        }
+
+        .exit-btn {
+            background-color: black;
+            color: white;
         }
     </style>
 </head>
 <body>
     <h1>Distance Measurement App</h1>
-    <div>
-        <a href="/start"><button>Start</button></a>
-        <a href="/stop"><button>Stop</button></a>
-        <a href="/exit"><button>Exit</button></a>
+
+    <div class="video-container">
+        <img id="video-feed" alt="Video Stream">
+        <p class="distance-label">Distance: <span id="distance-value">--</span> cm</p>
     </div>
-    <div>
-        <img id="video" src="/video_feed" alt="Video Feed">
+
+    <div class="button-container">
+        <button class="button start-btn" onclick="startVideo()">Start</button>
+        <button class="button stop-btn" onclick="stopVideo()">Stop</button>
+        <button class="button exit-btn" onclick="exitApp()">Exit</button>
     </div>
+
+    <script>
+        let running = false;
+        let interval;
+
+        function startVideo() {
+            if (!running) {
+                fetch('/start')
+                    .then(() => {
+                        running = true;
+                        document.getElementById('video-feed').style.display = "block"; // Show video
+                        document.getElementById('video-feed').src = "/video_feed?" + new Date().getTime(); // Force reload
+                        interval = setInterval(updateDistance, 500);
+                    });
+            }
+        }
+
+        function stopVideo() {
+            if (running) {
+                fetch('/stop')
+                    .then(() => {
+                        running = false;
+                        clearInterval(interval);
+                        document.getElementById('video-feed').style.display = "none"; // Hide video
+                        document.getElementById('video-feed').src = ""; // Clear video feed
+                    });
+            }
+        }
+
+        function exitApp() {
+            fetch('/exit').then(() => window.close());
+        }
+
+        function updateDistance() {
+            fetch('/get_distance')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('distance-value').textContent = data.distance;
+                });
+        }
+    </script>
 </body>
 </html>
